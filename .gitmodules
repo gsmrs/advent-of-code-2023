@@ -1,0 +1,4 @@
+[submodule "gstd"]
+    path = gstd
+    url = git@github.com:gsmrs/gstd
+
