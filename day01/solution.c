@@ -35,10 +35,9 @@ void get_digits_part2(str line, int * restrict first_digit, int * restrict last_
             digit = line.data[i] - '0';
         } else {
             str remainder = str_sub(line, i, line.len);
-            for (int i = 0; i < 9; i++) {
-                if (str_starts_with(remainder, spelled_out[i])) {
-                    digit = i + 1;
-                    i += spelled_out[i].len;
+            for (int j = 0; j < 9; j++) {
+                if (str_starts_with(remainder, spelled_out[j])) {
+                    digit = j + 1;
                     break;
                 }
             }
@@ -58,6 +57,7 @@ int main(int argc, const char **argv) {
 
     int part_1 = 0, part_2 = 0;
     str line;
+    int line_num = 1;
     FOREACH_LINE(input, line) {
         int first_digit = -1, last_digit = -1;
 
@@ -66,6 +66,8 @@ int main(int argc, const char **argv) {
 
         get_digits_part2(line, &first_digit, &last_digit);
         part_2 += 10 * first_digit + last_digit;
+
+        line_num++;
     }
 
     printf("%d\n", part_1);
