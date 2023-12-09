@@ -2,20 +2,6 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#define MAX(a, b) (((a) >= (b)) ? (a) : (b))
-
-bool str_parse_int(str s, int *result) {
-    *result = 0;
-    for (size_t i = 0; i < s.len; i++) {
-        uint8_t ch = s.data[i];
-        if (isdigit(ch)) {
-            *result = 10 * (*result) + (ch - '0');
-        } else {
-            return false;
-        }
-    }
-    return true;
-}
 
 int main(int argc, const char **argv) {
     const char *input_file = get_input(argc, argv);
