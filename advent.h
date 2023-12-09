@@ -27,3 +27,15 @@ extern str STR_NEWLINE;
 #define FOREACH_LINE(input, line) \
         while (!str_empty(line = str_next_token(&input, STR_NEWLINE)))
 
+
+typedef struct {
+    size_t count;
+    size_t capacity;
+    int64_t *data;
+} IntVec;
+
+void iv_init(IntVec *iv, size_t initial_capacity);
+void iv_clear(IntVec *iv);
+void iv_push(IntVec *iv, int64_t value);
+bool iv_contains(IntVec *iv, int64_t value);
+void iv_free(IntVec *iv);

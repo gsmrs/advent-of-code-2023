@@ -2,48 +2,6 @@
 
 #include <stdlib.h>
 
-typedef struct {
-    size_t count;
-    size_t capacity;
-    int64_t *data;
-} IntVec;
-
-void iv_init(IntVec *iv, size_t initial_capacity) {
-    iv->count = 0;
-    iv->capacity = initial_capacity;
-    assert((iv->data = malloc(iv->capacity * sizeof(*iv->data))));
-}
-
-void iv_clear(IntVec *iv) {
-    iv->count = 0;
-}
-
-void iv_push(IntVec *iv, int64_t value) {
-    if (iv->count == iv->capacity) {
-        iv->capacity = MIN(8, 2 * iv->capacity);
-        assert((iv->data = realloc(iv->data, iv->capacity * sizeof(*iv->data))));
-    }
-    iv->data[iv->count++] = value;
-}
-
-bool iv_contains(IntVec *iv, int64_t value) {
-    for (size_t i = 0; i < iv->count; i++) {
-        if (iv->data[i] == value) {
-            return true;
-        }
-    }
-    return false;
-}
-
-void iv_free(IntVec *iv) {
-    if (iv->data) {
-        free(iv->data);
-        iv->data = NULL;
-        iv->count = 0;
-        iv->capacity = 0;
-    }
-}
-
 void parse_ints(str input, IntVec *iv) {
     str delim = cstr(" ");
     while (!str_empty(input)) {

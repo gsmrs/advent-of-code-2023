@@ -3,6 +3,8 @@
 #define GSTD_LOG_IMPLEMENTATION
 #include "gstd_log.h"
 
+#include "advent.h"
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,15 +48,60 @@ bool str_parse_int(str s, int *result) {
     }
     return true;
 }
-bool str_parse_int64(str s, int64_t *result) {
-    *result = 0;
-    for (size_t i = 0; i < s.len; i++) {
+bool str_parse_int64(str s, int64_t *out_result) {
+    int64_t result = 0;
+    int64_t sign = 1;
+    size_t i = 0;
+    if (s.len > 0 && s.data[0] == '-') {
+        sign = -1;
+        i++;
+    }
+    for (; i < s.len; i++) {
         uint8_t ch = s.data[i];
         if (isdigit(ch)) {
-            *result = 10 * (*result) + (ch - '0');
+            result = 10 * (result) + (ch - '0');
         } else {
             return false;
         }
     }
+    result *= sign;
+    *out_result = result;
     return true;
 }
+
+void iv_init(IntVec *iv, size_t initial_capacity) {
+    iv->count = 0;
+    iv->capacity = initial_capacity;
+    assert((iv->data = malloc(iv->capacity * sizeof(*iv->data))));
+}
+
+void iv_clear(IntVec *iv) {
+    iv->count = 0;
+}
+
+void iv_push(IntVec *iv, int64_t value) {
+    if (iv->count == iv->capacity) {
+        iv->capacity = MIN(8, 2 * iv->capacity);
+        assert((iv->data = realloc(iv->data, iv->capacity * sizeof(*iv->data))));
+    }
+    iv->data[iv->count++] = value;
+}
+
+bool iv_contains(IntVec *iv, int64_t value) {
+    for (size_t i = 0; i < iv->count; i++) {
+        if (iv->data[i] == value) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void iv_free(IntVec *iv) {
+    if (iv->data) {
+        free(iv->data);
+        iv->data = NULL;
+        iv->count = 0;
+        iv->capacity = 0;
+    }
+}
+
