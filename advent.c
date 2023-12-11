@@ -105,3 +105,38 @@ void iv_free(IntVec *iv) {
     }
 }
 
+CharGrid read_char_grid(str input) {
+    str lines = input;
+    int height = 0;
+    int width = 0;
+    while (!str_empty(lines)) {
+        str line = str_next_token(&lines, cstr("\n"));
+        line = str_trim(line);
+        if (line.len == 0) {
+            break;
+        }
+        width = line.len;
+        height++;
+    }
+
+    uint8_t *cells = calloc(width * height, 1);
+    lines = input;
+    int index = 0;
+    while (!str_empty(lines)) {
+        str line = str_next_token(&lines, cstr("\n"));
+        line = str_trim(line);
+        if (line.len == 0) {
+            break;
+        }
+        assert((int) line.len == width);
+        memcpy(cells + index, line.data, line.len);
+        index += line.len;
+    }
+
+    CharGrid result = {
+        .cells = cells,
+        .width = width,
+        .height = height
+    };
+    return result;
+}

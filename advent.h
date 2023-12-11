@@ -39,3 +39,10 @@ void iv_clear(IntVec *iv);
 void iv_push(IntVec *iv, int64_t value);
 bool iv_contains(IntVec *iv, int64_t value);
 void iv_free(IntVec *iv);
+
+typedef struct {
+    uint8_t *cells;
+    int width, height;
+} CharGrid;
+
+CharGrid read_char_grid(str input);
