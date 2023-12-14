@@ -99,20 +99,82 @@ bool in_bounds(CharGrid *grid, Point p) {
     return (p.x >= 0) && (p.y >= 0) && (p.x < grid->width) && (p.y < grid->height);
 }
 
+enum PointRelation {
+    INSIDE, OUTSIDE, UNKNOWN
+};
+
+enum PointRelation raycast(CharGrid *grid, Point p, Point start, bool *boundary) {
+    int x = start.x;
+    int y = start.y;
+
+    int dx, dy;
+    char wall;
+    if (start.x == p.x) {
+        // vertical
+        if (start.y < p.y) {
+            dx = 0;
+            dy = 1;
+        }
+        else {
+            dx = 0;
+            dy = -1;
+        }
+        wall = '-';
+    } else {
+        if (start.x < p.x) {
+            dx = 1;
+            dy = 0;
+        } else {
+            dx = -1;
+            dy = 0;
+        }
+        wall = '|';
+    }
+
+
+    enum PointRelation state = OUTSIDE;
+    bool last_on_boundary = false;
+    for (; !((x == p.x + dx) && (y == p.y + dy)); x += dx, y += dy) {
+        int index = y * grid->width + x;
+        bool on_boundary = boundary[index];
+        if (on_boundary) {
+            if (grid->cells[index] == wall) {
+                if (state == INSIDE) state = OUTSIDE;
+                else if (state == OUTSIDE) state = INSIDE;
+            } else {
+                state = UNKNOWN;
+            }
+        }
+        last_on_boundary = on_boundary;
+    }
+    return state;
+}
+
 bool is_point_inside(CharGrid *grid, Point p, bool *boundary) {
     const int width = grid->width;
+    const int height = grid->height;
     if (grid->cells[p.y * width + p.x] != '.') {
         return false;
     }
-    // walk left
-    int x = p.x, y = p.y;
-    int crossings = 0;
-    for (; x >= 0; x--) {
-        if (boundary[y * width + x]) {
-            crossings++;
-        }
-    }
-    return crossings % 2 == 1;
+
+
+    enum PointRelation result;
+
+    result = raycast(grid, p, (Point) { .x = 0, .y = p.y }, boundary);
+    if (result != UNKNOWN) return result == INSIDE;
+
+    result = raycast(grid, p, (Point) { .x = grid->width - 1, .y = p.y }, boundary);
+    if (result != UNKNOWN) return result == INSIDE;
+
+    result = raycast(grid, p, (Point) { .x = p.x, .y = 0 }, boundary);
+    if (result != UNKNOWN) return result == INSIDE;
+
+    result = raycast(grid, p, (Point) { .x = p.x, .y = grid->height - 1 }, boundary);
+    if (result != UNKNOWN) return result == INSIDE;
+
+    printf("Could not determine whether (%d, %d) is inside\n", p.x, p.y);
+    /* return false; */
+    assert(0 && "not reachable");
 }
 
 void dump_boundary(bool *boundary, int width, int height) {
