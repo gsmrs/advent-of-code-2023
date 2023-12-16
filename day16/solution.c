@@ -1,5 +1,6 @@
 #include "advent.h"
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct Cell {
     bool energized;
@@ -123,6 +124,21 @@ void trace_beam(Grid *grid, int x, int y, Direction direction) {
     }
 }
 
+void reset_grid(Grid *g) {
+    for (int i = 0; i < g->width * g->height; i++) {
+        memset(g->cells[i].visited, 0, sizeof(g->cells[i].visited));
+        g->cells[i].energized = false;
+    }
+}
+
+int count_energized(const Grid *grid) {
+    int result = 0;
+    for (int i = 0; i < grid->width * grid->height; i++) {
+        result += (int) grid->cells[i].energized;
+    }
+    return result;
+}
+
 int main(int argc, const char **argv) {
     const char *input_file = get_input(argc, argv);
     str input = read_file(input_file);
@@ -141,11 +157,34 @@ int main(int argc, const char **argv) {
     trace_beam(&grid, 0, 0, RIGHT);
 
     // count energized tiles
-    int part_1 = 0;
-    for (int i = 0; i < grid.width * grid.height; i++) {
-        part_1 += (int) grid.cells[i].energized;
-    }
+    int part_1 = count_energized(&grid);
     printf("%d\n", part_1);
+
+    // Part 2
+    int part_2 = 0;
+
+    for (int x = 0; x < grid.width; x++) {
+        // top edge
+        reset_grid(&grid);
+        trace_beam(&grid, x, 0, DOWN);
+        part_2 = MAX(part_2, count_energized(&grid));
+        // bottom edge
+        reset_grid(&grid);
+        trace_beam(&grid, x, grid.height - 1, UP);
+        part_2 = MAX(part_2, count_energized(&grid));
+    }
+
+    for (int y = 0; y < grid.height; y++) {
+        // left edge
+        reset_grid(&grid);
+        trace_beam(&grid, 0, y, RIGHT);
+        part_2 = MAX(part_2, count_energized(&grid));
+        // right edge
+        reset_grid(&grid);
+        trace_beam(&grid, grid.width - 1, y, LEFT);
+        part_2 = MAX(part_2, count_energized(&grid));
+    }
+    printf("%d\n", part_2);
 
     free(char_grid.cells);
     free(grid.cells);
