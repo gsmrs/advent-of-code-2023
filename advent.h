@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+#include "trashhash.h"
 #include "gstd_string.h"
 #include "gstd_log.h"
 

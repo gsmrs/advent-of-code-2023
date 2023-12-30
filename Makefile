@@ -10,7 +10,7 @@ all: libadvent.a $(BINS) $(BINS_FAST)
 libadvent.a: advent.o
 	ar rcs $@ $<
 
-advent.o: advent.c advent.h gstd/*
+advent.o: advent.c advent.h gstd/* trashhash.h
 	$(CC) -I gstd -c -Wall -Wextra -g -o $@ $<
 
 %: %.c libadvent.a

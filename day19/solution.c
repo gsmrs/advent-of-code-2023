@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "trashhash.h"
-
 typedef enum {
     X = 0,
     M = 1,
@@ -463,5 +461,3 @@ int main(int argc, const char **argv) {
     trashmap_free(&workflows);
     free(input.data);
 }
-
-#include "trashhash.c"

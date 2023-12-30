@@ -140,3 +140,5 @@ CharGrid read_char_grid(str input) {
     };
     return result;
 }
+
+#include "trashhash.c"
