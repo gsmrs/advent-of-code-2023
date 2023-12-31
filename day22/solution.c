@@ -7,9 +7,12 @@ typedef struct Point {
     int x, y, z;
 } Point;
 
+typedef struct BlockNode BlockNode;
+
 typedef struct Block {
     Point start, end;
     int id;
+    bool fallen;
 } Block;
 
 Point parse_point(str s) {
@@ -120,6 +123,60 @@ void debug_print_xz(PosMap *pm, Point min, Point max) {
     }
 }
 
+bool rests_on_bottom(Block block) {
+    for (int z = block.start.z; z <= block.end.z; z++) {
+        if (z == 1) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void dump_matrix(bool *support, int block_count) {
+    for (int i = 0; i < block_count; i++) {
+        for (int j = 0; j < block_count; j++) {
+            putchar(*support++ ? '1' : '0');
+        }
+        puts("");
+    }
+}
+int count_falling_blocks(Block *blocks, int block_count, int block_index, bool *support) {
+    /* printf("count_falling_blocks(block_index = %d)\n", block_index); */
+    ASSERT(block_index < block_count);
+#define SUPPORTS(i, j) support[(j) * block_count + (i)]
+    // remove support for children
+    for (int child_index = 0; child_index < block_count; child_index++) {
+        SUPPORTS(block_index, child_index) = false;
+    }
+    blocks[block_index].fallen = true;
+
+    // find all blocks which are no longer supported
+    int fallen_blocks = 1;
+    for (int i = 0; i < block_count; i++) {
+        if (blocks[i].fallen) {
+            continue;
+        }
+        if (rests_on_bottom(blocks[i])) {
+            continue;
+        }
+
+
+        bool is_still_supported = false;
+        for (int parent_index = 0; parent_index < block_count; parent_index++) {
+            if (SUPPORTS(parent_index, i)) {
+                is_still_supported = true;
+                break;
+            }
+        }
+        if (!is_still_supported) {
+            // block is not supported by anything - cascade!
+            fallen_blocks += count_falling_blocks(blocks, block_count, i, support);
+        }
+    }
+    return fallen_blocks;
+#undef SUPPORTS
+}
+
 int main(int argc, const char **argv) {
     const char *input_file = get_input(argc, argv);
     str input = read_file(input_file);
@@ -167,7 +224,7 @@ int main(int argc, const char **argv) {
 
     /* debug_print_xz(front, min, max); */
 
-    // support[i * block_count + j] is true iff block i supports block j
+    // support[j * block_count + i] is true iff block i supports block j
     bool *support = calloc(block_count * block_count, sizeof(*support));
 
     for (;;) {
@@ -187,7 +244,7 @@ int main(int argc, const char **argv) {
                         Block *below = pm_get(front, point_below);
                         can_fall &= z > 1;
                         if (below && (below->id != b->id)) {
-                            support[below->id * block_count + b->id] = true;
+                            support[b->id * block_count + below->id] = true;
                             can_fall = false;
                         }
                     }
@@ -218,10 +275,10 @@ int main(int argc, const char **argv) {
         // This is the case iff all children of i are supported by at least one other block apart from i.
         bool can_disintegrate = true;
         for (int child_index = 0; child_index < block_count; child_index++) {
-            if (support[i * block_count + child_index]) {
+            if (support[child_index * block_count + i]) {
                 int num_parents = 0;
                 for (int parent_index = 0; parent_index < block_count; parent_index++) {
-                    num_parents += support[parent_index * block_count + child_index];
+                    num_parents += support[child_index * block_count + parent_index];
                 }
                 ASSERT(num_parents >= 1);
                 if (num_parents == 1) {
@@ -236,9 +293,29 @@ int main(int argc, const char **argv) {
     }
     printf("%d\n", part_1);
 
+    size_t support_size = block_count * block_count * sizeof(*support);
+    bool *support_original = malloc(support_size);
+    memcpy(support_original, support, support_size);
+
+    int part_2 = 0;
+    for (int i = 0; i < block_count; i++) {
+        // reset `fallen` flag
+        for (int j = 0; j < block_count; j++) {
+            blocks[j].fallen = false;
+        }
+
+        memcpy(support, support_original, support_size);
+        /* dump_matrix(support, block_count); */
+        int fallen_blocks = count_falling_blocks(blocks, block_count, i, support) - 1;
+        /* printf("Disintegrating block %d causes %d blocks to fall\n", i, fallen_blocks); */
+        part_2 += fallen_blocks;
+    }
+    printf("%d\n", part_2);
+
     /* debug_print_xz(front, min, max); */
 
     free(support);
+    free(support_original);
     pm_clear(front);
     pm_clear(back);
     free(input.data);
