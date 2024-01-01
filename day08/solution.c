@@ -53,7 +53,7 @@ int main(int argc, const char **argv) {
         if (lhs.data[2] == 'A') {
             assert(start_node_count < NUM_MAX_START_NODES);
             start_nodes[start_node_count++] = node_from_str(lhs);
-            printf("Have start node: " STR_FMT "\n", STR(lhs));
+            printf("Have start node: " STR_FMT "\n", STR_ARG(lhs));
         }
 
         str left, right;

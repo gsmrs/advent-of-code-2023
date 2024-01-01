@@ -1,5 +1,6 @@
 #include "advent.h"
 #include <stdlib.h>
+#include <string.h>
 
 bool parse_numbers(str nums_str, IntVec *result) {
     while (!str_empty(nums_str)) {
@@ -46,7 +47,9 @@ bool is_solution(str line, IntVec *numbers) {
 int64_t count_solutions_helper(str pattern, IntVec *numbers, size_t index) {
     if (index == pattern.len) {
         bool ok = is_solution(pattern, numbers);
-        /* printf("is_solution(" STR_FMT ") -> %d\n", STR(pattern), ok); */
+        /* if (ok) { */
+            /* printf("is_solution(" STR_FMT ") -> %d\n", STR_ARG(pattern), ok); */
+        /* } */
         return (int64_t) ok;
     }
 
@@ -81,6 +84,10 @@ int main(int argc, const char **argv) {
     IntVec numbers;
     iv_init(&numbers, 1024);
     int64_t part_1 = 0;
+    int64_t part_2 = 0;
+
+    size_t cap = 1024;
+    uint8_t *repeated = malloc(cap);
 
     while (!str_empty(lines)) {
         str line = str_next_token(&lines, cstr("\n"));
@@ -91,12 +98,41 @@ int main(int argc, const char **argv) {
         assert(parse_numbers(num_str, &numbers));
 
         int64_t solutions = count_solutions(pattern, &numbers);
-        /* printf(STR_FMT " -> %ld\n", STR(line), solutions); */
+        /* printf(STR_FMT " -> %ld\n", STR_ARG(line), solutions); */
         part_1 += solutions;
+
+        // repeat pattern
+        size_t repeated_len = pattern.len * 5 + 4;
+        if (cap < repeated_len) {
+            repeated = realloc(repeated, repeated_len);
+            cap = repeated_len;
+        }
+
+        uint8_t *ptr = repeated;
+        memcpy(ptr, pattern.data, pattern.len);
+        ptr += pattern.len;
+        int count = numbers.count;
+        for (int i = 0; i < 4; i++) {
+            *ptr++ = '?';
+            memcpy(ptr, pattern.data, pattern.len);
+            ptr += pattern.len;
+
+            for (int j = 0; j < count; j++) {
+                iv_push(&numbers, numbers.data[j]);
+            }
+        }
+
+        ASSERT(ptr - repeated == (ptrdiff_t) repeated_len);
+        str repeated_pattern = { .data = repeated, .len = repeated_len };
+        // TODO
+        printf(STR_FMT "\n", STR_ARG(repeated_pattern));
+        part_2 += count_solutions(repeated_pattern, &numbers);
 
         FOO++;
     }
     printf("%ld\n", part_1);
+    printf("%ld\n", part_2);
 
+    free(repeated);
     free((void *) input.data);
 }

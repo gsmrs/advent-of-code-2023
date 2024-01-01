@@ -61,7 +61,7 @@ int main(int argc, const char **argv) {
                 } else if (str_eq(color, BLUE)) {
                     blue = count;
                 } else {
-                    log_fatal("unknown color: " STR_FMT, STR(color));
+                    log_fatal("unknown color: " STR_FMT, STR_ARG(color));
                     exit(-1);
                 }
             }

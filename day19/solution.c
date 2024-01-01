@@ -80,17 +80,17 @@ Rule *make_rule_rule(str rule, str destination) {
 
 Workflow parse_workflow(str line) {
     str name = str_next_token(&line, cstr("{"));
-    /* printf("Got name = " STR_FMT "\n", STR(name)); */
+    /* printf("Got name = " STR_FMT "\n", STR_ARG(name)); */
     str content = str_next_token(&line, cstr("}"));
     content.len--; // WHY?
-    /* printf("content = " STR_FMT "\n", STR(content)); */
+    /* printf("content = " STR_FMT "\n", STR_ARG(content)); */
     Workflow workflow = { .name = name };
     Rule *rule = NULL;
     Rule *current = NULL;
 
     while (!str_empty(content)) {
         str block = str_next_token(&content, cstr(","));
-        /* printf(STR_FMT "\n", STR(block)); */
+        /* printf(STR_FMT "\n", STR_ARG(block)); */
         str_find_result colon = str_find_left(block, cstr(":"));
         Rule *next = NULL;
         if (colon.found) {
@@ -117,10 +117,10 @@ Workflow parse_workflow(str line) {
 }
 
 void print_workflow(Workflow *w) {
-    printf(STR_FMT "{", STR(w->name));
+    printf(STR_FMT "{", STR_ARG(w->name));
     for (Rule *rule = w->rule; rule; rule = rule->next) {
         if (rule->type == DEFAULT) {
-            printf(STR_FMT, STR(rule->destination));
+            printf(STR_FMT, STR_ARG(rule->destination));
         } else {
             printf("%s\n", property_to_str(rule->property));
             switch (rule->type) {
@@ -128,7 +128,7 @@ void print_workflow(Workflow *w) {
                 case GREATER: putchar('>'); break;
                 default: ASSERT(0);
             }
-            printf("%d:" STR_FMT, rule->value, STR(rule->destination));
+            printf("%d:" STR_FMT, rule->value, STR_ARG(rule->destination));
         }
         if (rule->next) {
             printf(",");
@@ -185,7 +185,7 @@ Part parse_part(str line) {
 
 void part_printer(void *key, uintptr_t value, void *ctx) {
     (void) ctx;
-    printf(STR_FMT "=%d,", STR(*(str *) key), (int) value);
+    printf(STR_FMT "=%d,", STR_ARG(*(str *) key), (int) value);
 }
 
 void print_part(TrashMap *part) {
@@ -202,7 +202,7 @@ typedef enum Status {
 Status route_part(TrashMap *workflows, Part part) {
     str workflow_name = cstr("in");
     for (;;) {
-        /* printf("Current workflow: " STR_FMT "\n", STR(workflow_name)); */
+        /* printf("Current workflow: " STR_FMT "\n", STR_ARG(workflow_name)); */
         Workflow *workflow;
         ASSERT(trashmap_get(workflows, &workflow_name, (uintptr_t *) &workflow));
         ASSERT(workflow);
@@ -442,7 +442,7 @@ int main(int argc, const char **argv) {
         if (str_empty(line)) {
             continue;
         }
-        printf("part: " STR_FMT "\n", STR(line));
+        printf("part: " STR_FMT "\n", STR_ARG(line));
         Part part = parse_part(line);
 
         Status status = route_part(&workflows, part);
